@@ -6,6 +6,8 @@ const abierto = ref(false);
 const notificaciones = ref([]);
 const monitoreando = ref(false);
 const revisando = ref(false);
+const campanaEl = ref(null);
+const posicion = ref({ top: "0px", left: "0px" });
 let intervaloId = null;
 
 const sinLeer = () => notificaciones.value.filter((n) => !n.read).length;
@@ -16,13 +18,24 @@ async function actualizar() {
     notificaciones.value = data.notificaciones;
     monitoreando.value = data.monitoreando;
   } catch {
-    // si falla el refresco en segundo plano, no interrumpimos el resto de la UI
+    // silencioso: si falla el refresco en segundo plano no interrumpimos el resto de la UI
   }
+}
+
+function calcularPosicion() {
+  const rect = campanaEl.value.getBoundingClientRect();
+  posicion.value = {
+    top: `${rect.bottom + 8}px`,
+    left: `${rect.left}px`,
+  };
 }
 
 async function alternarPanel() {
   abierto.value = !abierto.value;
-  if (abierto.value) await actualizar();
+  if (abierto.value) {
+    calcularPosicion();
+    await actualizar();
+  }
 }
 
 async function revisarAhora() {
@@ -51,39 +64,41 @@ async function marcarLeidas() {
 
 onMounted(() => {
   actualizar();
-  intervaloId = setInterval(actualizar, 30000); // refresco silencioso cada 30s
+  intervaloId = setInterval(actualizar, 30000);
 });
 onUnmounted(() => clearInterval(intervaloId));
 </script>
 
 <template>
   <div class="campana-wrap">
-    <button class="campana" @click="alternarPanel">
+    <button ref="campanaEl" class="campana" @click="alternarPanel">
       🔔
       <span v-if="sinLeer() > 0" class="punto"></span>
     </button>
 
-    <div v-if="abierto" class="panel ficha">
-      <div class="panel-header">
-        <strong>Notificaciones</strong>
-        <button class="link" @click="marcarLeidas">Marcar leídas</button>
-      </div>
+    <Teleport to="body">
+      <div v-if="abierto" class="panel ficha" :style="posicion">
+        <div class="panel-header">
+          <strong>Notificaciones</strong>
+          <button class="link" @click="marcarLeidas">Marcar leídas</button>
+        </div>
 
-      <div class="acciones">
-        <button class="secundario" @click="revisarAhora" :disabled="revisando">
-          {{ revisando ? "Revisando..." : "Revisar ahora" }}
-        </button>
-        <button class="secundario" @click="alternarMonitoreo">
-          {{ monitoreando ? "Detener monitoreo" : "Activar monitoreo" }}
-        </button>
-      </div>
+        <div class="acciones">
+          <button class="secundario" @click="revisarAhora" :disabled="revisando">
+            {{ revisando ? "Revisando..." : "Revisar ahora" }}
+          </button>
+          <button class="secundario" @click="alternarMonitoreo">
+            {{ monitoreando ? "Detener monitoreo" : "Activar monitoreo" }}
+          </button>
+        </div>
 
-      <p v-if="!notificaciones.length" class="dato-muted">Sin notificaciones por ahora.</p>
-      <div v-for="n in notificaciones" :key="n.id" class="item" :class="{ leida: n.read }">
-        <p>{{ n.message }}</p>
-        <span class="dato-mono dato-muted">{{ new Date(n.created_at).toLocaleString() }}</span>
+        <p v-if="!notificaciones.length" class="dato-muted">Sin notificaciones por ahora.</p>
+        <div v-for="n in notificaciones" :key="n.id" class="item" :class="{ leida: n.read }">
+          <p>{{ n.message }}</p>
+          <span class="dato-mono dato-muted">{{ new Date(n.created_at).toLocaleString() }}</span>
+        </div>
       </div>
-    </div>
+    </Teleport>
   </div>
 </template>
 
@@ -111,15 +126,13 @@ onUnmounted(() => clearInterval(intervaloId));
 }
 
 .panel {
-  position: absolute;
-  left: 0;
-  top: 54px;
+  position: fixed;
   width: 360px;
   max-height: 440px;
   overflow-y: auto;
   background: var(--paper);
   color: var(--ink);
-  z-index: 20;
+  z-index: 50;
   padding: 22px 20px;
   box-shadow: 0 10px 28px rgba(0, 0, 0, 0.3);
 }
