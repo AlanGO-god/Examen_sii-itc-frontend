@@ -24,10 +24,26 @@ async function actualizar() {
 
 function calcularPosicion() {
   const rect = campanaEl.value.getBoundingClientRect();
-  posicion.value = {
-    top: `${rect.bottom + 8}px`,
-    left: `${rect.left}px`,
-  };
+  const margen = 16;
+  const espacioAbajo = window.innerHeight - rect.bottom - margen;
+  const espacioArriba = rect.top - margen;
+
+  if (espacioAbajo < 300 && espacioArriba > espacioAbajo) {
+    // no cabe hacia abajo pero sí hacia arriba: el panel "voltea" sobre la campana
+    posicion.value = {
+      left: `${rect.left}px`,
+      top: "auto",
+      bottom: `${window.innerHeight - rect.top + 8}px`,
+      maxHeight: `${Math.min(440, espacioArriba)}px`,
+    };
+  } else {
+    posicion.value = {
+      left: `${rect.left}px`,
+      top: `${rect.bottom + 8}px`,
+      bottom: "auto",
+      maxHeight: `${Math.min(440, espacioAbajo)}px`,
+    };
+  }
 }
 
 async function alternarPanel() {
