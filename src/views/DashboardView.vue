@@ -1,18 +1,36 @@
 <script setup>
-import { useAuthStore } from "../store/auth.js";
-import { useRouter } from "vue-router";
+import { ref, onMounted } from "vue";
+import { api } from "../services/api.js";
 
-const auth = useAuthStore();
-const router = useRouter();
+const perfil = ref(null);
+const loading = ref(true);
+const errorMsg = ref("");
 
-function logout() {
-  auth.logout();
-  router.push({ name: "login" });
-}
+onMounted(async () => {
+  try {
+    const { data } = await api.get("/estudiante");
+    perfil.value = data.data;
+  } catch (err) {
+    errorMsg.value = err.response?.data?.message || "No se pudo cargar tu perfil.";
+  } finally {
+    loading.value = false;
+  }
+});
 </script>
 
 <template>
-  <h1>Dashboard</h1>
-  <p>Iniciaste sesión correctamente.</p>
-  <button @click="logout">Salir</button>
+  <h1>Mi perfil</h1>
+
+  <p v-if="loading">Cargando...</p>
+  <p v-else-if="errorMsg" style="color:red">{{ errorMsg }}</p>
+
+  <div v-else>
+    <p><strong>{{ perfil.persona }}</strong> — N.º de control: {{ perfil.numero_control }}</p>
+    <p>Correo: {{ perfil.email }}</p>
+    <p>Semestre: {{ perfil.semestre }}</p>
+    <p>Promedio ponderado: {{ perfil.promedio_ponderado }}</p>
+    <p>Promedio aritmético: {{ perfil.promedio_aritmetico }}</p>
+    <p>Materias cursadas: {{ perfil.materias_cursadas }} — Aprobadas: {{ perfil.materias_aprobadas }} — Reprobadas: {{ perfil.materias_reprobadas }}</p>
+    <p>Porcentaje de avance: {{ perfil.porcentaje_avance }}%</p>
+  </div>
 </template>

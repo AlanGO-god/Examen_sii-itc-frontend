@@ -5,9 +5,14 @@ const routes = [
   { path: "/login", name: "login", component: () => import("../views/LoginView.vue") },
   {
     path: "/",
-    name: "dashboard",
-    component: () => import("../views/DashboardView.vue"),
+    component: () => import("../components/AppLayout.vue"),
     meta: { requiresAuth: true },
+    children: [
+      { path: "", name: "dashboard", component: () => import("../views/DashboardView.vue") },
+      { path: "calificaciones", name: "calificaciones", component: () => import("../views/CalificacionesView.vue") },
+      { path: "kardex", name: "kardex", component: () => import("../views/KardexView.vue") },
+      { path: "horario", name: "horario", component: () => import("../views/HorarioView.vue") },
+    ],
   },
 ];
 
