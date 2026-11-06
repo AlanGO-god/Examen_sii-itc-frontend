@@ -114,20 +114,23 @@ onUnmounted(() => clearInterval(intervaloId));
   position: absolute;
   left: 0;
   top: 54px;
-  width: 320px;
-  max-height: 420px;
+  width: 360px;
+  max-height: 440px;
   overflow-y: auto;
   background: var(--paper);
   color: var(--ink);
   z-index: 20;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+  padding: 22px 20px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.3);
 }
 
 .panel-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--paper-line);
 }
 
 .link {
@@ -141,8 +144,9 @@ onUnmounted(() => clearInterval(intervaloId));
 
 .acciones {
   display: flex;
-  gap: 8px;
-  margin-bottom: 14px;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 18px;
 }
 
 .secundario {
@@ -154,9 +158,14 @@ onUnmounted(() => clearInterval(intervaloId));
 }
 
 .item {
-  padding: 10px 0;
+  padding: 14px 0;
   border-bottom: 1px solid var(--paper-line);
   font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.item p {
+  margin: 0 0 6px;
 }
 
 .item.leida {

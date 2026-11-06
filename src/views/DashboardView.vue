@@ -6,6 +6,10 @@ const perfil = ref(null);
 const loading = ref(true);
 const errorMsg = ref("");
 
+function redondear(valor) {
+  return Number(valor).toFixed(2);
+}
+
 onMounted(async () => {
   try {
     const { data } = await api.get("/estudiante");
@@ -39,11 +43,11 @@ onMounted(async () => {
           </div>
           <div>
             <dt>Promedio ponderado</dt>
-            <dd class="dato-mono">{{ perfil.promedio_ponderado }}</dd>
+            <dd class="dato-mono">{{ redondear(perfil.promedio_ponderado) }}</dd>
           </div>
           <div>
             <dt>Promedio aritmético</dt>
-            <dd class="dato-mono">{{ perfil.promedio_aritmetico }}</dd>
+            <dd class="dato-mono">{{ redondear(perfil.promedio_aritmetico) }}</dd>
           </div>
           <div>
             <dt>Materias cursadas</dt>
