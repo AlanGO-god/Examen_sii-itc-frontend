@@ -1,6 +1,7 @@
 <script setup>
 import { useRouter } from "vue-router";
 import { useAuthStore } from "../store/auth.js";
+import NotificationBell from "./NotificationBell.vue";
 
 const auth = useAuthStore();
 const router = useRouter();
@@ -14,14 +15,17 @@ function logout() {
 <template>
   <div class="layout">
     <aside class="tabs">
-      <div class="tabs-title">SII · ITC</div>
-      <nav>
+    <div class="tabs-title">SII · ITC</div>
+    <nav>
         <router-link to="/" class="tab">Perfil</router-link>
         <router-link to="/calificaciones" class="tab">Calificaciones</router-link>
         <router-link to="/kardex" class="tab">Kardex</router-link>
         <router-link to="/horario" class="tab">Horario</router-link>
-      </nav>
-      <button class="salir" @click="logout">Salir</button>
+    </nav>
+    <div style="padding: 0 24px 12px">
+        <NotificationBell />
+    </div>
+    <button class="salir" @click="logout">Salir</button>
     </aside>
     <main class="contenido">
       <router-view />
