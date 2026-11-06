@@ -12,13 +12,112 @@ function logout() {
 </script>
 
 <template>
-  <nav>
-    <router-link to="/">Dashboard</router-link> |
-    <router-link to="/calificaciones">Calificaciones</router-link> |
-    <router-link to="/kardex">Kardex</router-link> |
-    <router-link to="/horario">Horario</router-link>
-    <button @click="logout" style="float:right">Salir</button>
-  </nav>
-  <hr />
-  <router-view />
+  <div class="layout">
+    <aside class="tabs">
+      <div class="tabs-title">SII · ITC</div>
+      <nav>
+        <router-link to="/" class="tab">Perfil</router-link>
+        <router-link to="/calificaciones" class="tab">Calificaciones</router-link>
+        <router-link to="/kardex" class="tab">Kardex</router-link>
+        <router-link to="/horario" class="tab">Horario</router-link>
+      </nav>
+      <button class="salir" @click="logout">Salir</button>
+    </aside>
+    <main class="contenido">
+      <router-view />
+    </main>
+  </div>
 </template>
+
+<style scoped>
+.layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.tabs {
+  background: var(--cover);
+  color: var(--paper);
+  width: 220px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 24px 0;
+}
+
+.tabs-title {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.85rem;
+  letter-spacing: 0.02em;
+  padding: 0 24px 20px;
+  border-bottom: 1px solid rgba(241, 233, 216, 0.25);
+  margin-bottom: 12px;
+}
+
+.tabs nav {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.tab {
+  padding: 12px 24px;
+  text-decoration: none;
+  color: var(--paper);
+  opacity: 0.7;
+  border-left: 3px solid transparent;
+}
+
+.tab:hover {
+  opacity: 1;
+}
+
+/* vue-router agrega esta clase a la pestaña de la ruta activa */
+.tab.router-link-exact-active {
+  background: var(--paper);
+  color: var(--ink);
+  opacity: 1;
+  border-left-color: var(--stamp);
+  font-weight: 600;
+}
+
+.salir {
+  margin: 12px 24px 0;
+  background: transparent;
+  border: 1px solid rgba(241, 233, 216, 0.5);
+  color: var(--paper);
+}
+
+.salir:hover {
+  background: rgba(241, 233, 216, 0.1);
+}
+
+.contenido {
+  flex: 1;
+  min-width: 0;
+}
+
+@media (max-width: 720px) {
+  .layout {
+    flex-direction: column;
+  }
+  .tabs {
+    width: 100%;
+    flex-direction: row;
+    align-items: center;
+    padding: 12px;
+  }
+  .tabs-title {
+    border-bottom: none;
+    padding: 0 12px 0 0;
+    margin-bottom: 0;
+  }
+  .tabs nav {
+    flex-direction: row;
+    overflow-x: auto;
+  }
+  .salir {
+    margin: 0 0 0 auto;
+  }
+}
+</style>

@@ -1,0 +1,120 @@
+:root {
+  --cover: #1f3a34;
+  --cover-dark: #16281f;
+  --paper: #f1e9d8;
+  --paper-line: #d8cbb0;
+  --ink: #221f1a;
+  --ink-soft: #5a5347;
+  --stamp: #7a1f3d;
+  --gold: #a9802e;
+  --pass: #3f6a4e;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "Source Serif 4", Georgia, serif;
+  font-size: 17px;
+  line-height: 1.5;
+}
+
+h1, h2, h3 {
+  font-weight: 600;
+  margin: 0 0 12px;
+}
+
+a {
+  color: inherit;
+}
+
+.folio {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 32px 28px;
+}
+
+.ficha {
+  border-top: 2px solid var(--ink);
+  border-bottom: 1px solid var(--paper-line);
+  padding: 20px 0;
+  margin-bottom: 20px;
+}
+
+.dato-mono {
+  font-family: "IBM Plex Mono", monospace;
+}
+
+.dato-muted {
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.92rem;
+}
+
+th {
+  text-align: left;
+  font-family: "Source Serif 4", serif;
+  font-weight: 600;
+  font-size: 0.95rem;
+  padding: 8px 10px;
+  border-bottom: 2px solid var(--ink);
+}
+
+td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--paper-line);
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"] {
+  font-family: "Source Serif 4", serif;
+  font-size: 1rem;
+  padding: 8px 10px;
+  border: none;
+  border-bottom: 2px solid var(--ink);
+  background: transparent;
+  color: var(--ink);
+  width: 100%;
+}
+
+input:focus {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+button {
+  font-family: "Source Serif 4", serif;
+  font-size: 1rem;
+  cursor: pointer;
+  border: 1px solid var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+  padding: 10px 18px;
+}
+
+button:hover {
+  background: var(--cover);
+}
+
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+  }
+}
