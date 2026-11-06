@@ -82,9 +82,9 @@ onMounted(async () => {
 }
 
 .nombre {
-  font-size: 1.3rem;
+  font-size: 1.7rem;
   font-weight: 600;
-  margin: 0 0 4px;
+  margin: 0 0 6px;
 }
 
 .grid {
@@ -100,8 +100,8 @@ onMounted(async () => {
 }
 
 .grid dd {
-  margin: 2px 0 0;
-  font-size: 1.1rem;
+  margin: 4px 0 0;
+  font-size: 1.3rem;
 }
 
 .pass {
@@ -120,8 +120,8 @@ onMounted(async () => {
    No es decoración: el número que muestra es el dato real de porcentaje_avance. */
 .sello {
   flex-shrink: 0;
-  width: 128px;
-  height: 128px;
+  width: 160px;
+  height: 160px;
   border: 3px dashed var(--stamp);
   border-radius: 50%;
   display: flex;
@@ -134,7 +134,7 @@ onMounted(async () => {
 
 .sello-num {
   font-family: "IBM Plex Mono", monospace;
-  font-size: 1.6rem;
+  font-size: 2.1rem;
   font-weight: 600;
 }
 

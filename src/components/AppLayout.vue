@@ -38,20 +38,20 @@ function logout() {
 .tabs {
   background: var(--cover);
   color: var(--paper);
-  width: 220px;
+  width: 260px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  padding: 24px 0;
+  padding: 28px 0;
 }
 
 .tabs-title {
   font-family: "IBM Plex Mono", monospace;
-  font-size: 0.85rem;
+  font-size: 1rem;
   letter-spacing: 0.02em;
-  padding: 0 24px 20px;
+  padding: 0 28px 22px;
   border-bottom: 1px solid rgba(241, 233, 216, 0.25);
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 
 .tabs nav {
@@ -61,7 +61,8 @@ function logout() {
 }
 
 .tab {
-  padding: 12px 24px;
+  padding: 16px 28px;
+  font-size: 1.08rem;
   text-decoration: none;
   color: var(--paper);
   opacity: 0.7;

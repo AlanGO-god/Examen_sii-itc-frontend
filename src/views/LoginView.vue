@@ -64,15 +64,15 @@ async function onSubmit() {
 .cubierta {
   background: var(--paper);
   width: 100%;
-  max-width: 380px;
-  padding: 36px 32px;
+  max-width: 460px;
+  padding: 52px 48px;
   border-top: 4px solid var(--stamp);
 }
 
 .subtitulo {
   color: var(--ink-soft);
-  font-size: 0.82rem;
-  margin: -8px 0 28px;
+  font-size: 1rem;
+  margin: -8px 0 32px;
 }
 
 .campo {
