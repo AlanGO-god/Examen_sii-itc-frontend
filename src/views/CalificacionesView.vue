@@ -18,8 +18,6 @@ onMounted(async () => {
   }
 });
 
-// Aplanamos periodos -> materias en una sola lista para poder filtrarla y
-// mostrarla como tabla (en vez de anidar tablas dentro de tablas).
 const filas = computed(() => {
   const resultado = [];
   for (const periodo of periodos.value) {
@@ -47,48 +45,76 @@ const filtradas = computed(() => {
 function nivel(calificacion) {
   const val = Number(calificacion);
   if (calificacion === null || Number.isNaN(val)) return "sin-datos";
-  if (val >= 80) return "bien";
-  if (val >= 70) return "regular";
-  return "mal";
+  return val >= 70 ? "aprobada" : "reprobada";
 }
 </script>
 
 <template>
-  <h1>Calificaciones</h1>
+  <div class="folio">
+    <h1>Calificaciones</h1>
 
-  <p v-if="loading">Cargando...</p>
-  <p v-else-if="errorMsg" style="color:red">{{ errorMsg }}</p>
+    <p v-if="loading">Cargando...</p>
+    <p v-else-if="errorMsg" class="error">{{ errorMsg }}</p>
 
-  <template v-else>
-    <input v-model="search" type="text" placeholder="Buscar por materia o periodo..." />
+    <template v-else>
+      <input v-model="search" type="text" placeholder="Buscar por materia o periodo..." class="buscador" />
 
-    <table border="1" cellpadding="6" style="margin-top:10px; border-collapse:collapse">
-      <thead>
-        <tr>
-          <th>Materia</th>
-          <th>Grupo</th>
-          <th>Periodo</th>
-          <th>Calificación</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="(f, i) in filtradas" :key="i">
-          <td>{{ f.materia }}</td>
-          <td>{{ f.grupo }}</td>
-          <td>{{ f.periodo }}</td>
-          <td :class="nivel(f.calificacion)">{{ f.calificacion ?? "—" }}</td>
-        </tr>
-        <tr v-if="!filtradas.length">
-          <td colspan="4">Sin resultados.</td>
-        </tr>
-      </tbody>
-    </table>
-  </template>
+      <table>
+        <thead>
+          <tr>
+            <th>Materia</th>
+            <th>Grupo</th>
+            <th>Periodo</th>
+            <th>Calificación</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="(f, i) in filtradas" :key="i">
+            <td class="materia">{{ f.materia }}</td>
+            <td>{{ f.grupo }}</td>
+            <td>{{ f.periodo }}</td>
+            <td class="nota" :class="nivel(f.calificacion)">{{ f.calificacion ?? "—" }}</td>
+          </tr>
+          <tr v-if="!filtradas.length">
+            <td colspan="4">Sin resultados.</td>
+          </tr>
+        </tbody>
+      </table>
+    </template>
+  </div>
 </template>
 
 <style scoped>
-.bien { background: #d4f8d4; }
-.regular { background: #fff3cd; }
-.mal { background: #f8d4d4; }
-.sin-datos { background: #eee; }
+.buscador {
+  max-width: 320px;
+  margin-bottom: 20px;
+}
+
+.materia {
+  font-family: "Source Serif 4", serif;
+}
+
+.nota {
+  font-weight: 600;
+  border-left: 3px solid transparent;
+  padding-left: 12px !important;
+}
+
+.nota.aprobada {
+  color: var(--pass);
+  border-left-color: var(--pass);
+}
+
+.nota.reprobada {
+  color: var(--stamp);
+  border-left-color: var(--stamp);
+}
+
+.nota.sin-datos {
+  color: var(--ink-soft);
+}
+
+.error {
+  color: var(--stamp);
+}
 </style>
