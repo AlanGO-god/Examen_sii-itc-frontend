@@ -37,6 +37,7 @@ function logout() {
 .layout {
   display: flex;
   min-height: 100vh;
+  align-items: flex-start;
 }
 
 .tabs {
@@ -47,6 +48,10 @@ function logout() {
   display: flex;
   flex-direction: column;
   padding: 28px 0;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
 }
 
 .tabs-title {
@@ -111,6 +116,7 @@ function logout() {
     flex-direction: row;
     align-items: center;
     padding: 12px;
+    height: auto;
   }
   .tabs-title {
     border-bottom: none;

@@ -6,6 +6,8 @@ const abierto = ref(false);
 const notificaciones = ref([]);
 const monitoreando = ref(false);
 const revisando = ref(false);
+const campanaEl = ref(null);
+const posicion = ref({ top: "0px", left: "0px" });
 let intervaloId = null;
 
 const sinLeer = () => notificaciones.value.filter((n) => !n.read).length;
@@ -16,13 +18,40 @@ async function actualizar() {
     notificaciones.value = data.notificaciones;
     monitoreando.value = data.monitoreando;
   } catch {
-    // si falla el refresco en segundo plano, no interrumpimos el resto de la UI
+    // silencioso: si falla el refresco en segundo plano no interrumpimos el resto de la UI
+  }
+}
+
+function calcularPosicion() {
+  const rect = campanaEl.value.getBoundingClientRect();
+  const margen = 16;
+  const espacioAbajo = window.innerHeight - rect.bottom - margen;
+  const espacioArriba = rect.top - margen;
+
+  if (espacioAbajo < 300 && espacioArriba > espacioAbajo) {
+    // no cabe hacia abajo pero sí hacia arriba: el panel "voltea" sobre la campana
+    posicion.value = {
+      left: `${rect.left}px`,
+      top: "auto",
+      bottom: `${window.innerHeight - rect.top + 8}px`,
+      maxHeight: `${Math.min(440, espacioArriba)}px`,
+    };
+  } else {
+    posicion.value = {
+      left: `${rect.left}px`,
+      top: `${rect.bottom + 8}px`,
+      bottom: "auto",
+      maxHeight: `${Math.min(440, espacioAbajo)}px`,
+    };
   }
 }
 
 async function alternarPanel() {
   abierto.value = !abierto.value;
-  if (abierto.value) await actualizar();
+  if (abierto.value) {
+    calcularPosicion();
+    await actualizar();
+  }
 }
 
 async function revisarAhora() {
@@ -51,39 +80,41 @@ async function marcarLeidas() {
 
 onMounted(() => {
   actualizar();
-  intervaloId = setInterval(actualizar, 30000); // refresco silencioso cada 30s
+  intervaloId = setInterval(actualizar, 30000);
 });
 onUnmounted(() => clearInterval(intervaloId));
 </script>
 
 <template>
   <div class="campana-wrap">
-    <button class="campana" @click="alternarPanel">
+    <button ref="campanaEl" class="campana" @click="alternarPanel">
       🔔
       <span v-if="sinLeer() > 0" class="punto"></span>
     </button>
 
-    <div v-if="abierto" class="panel ficha">
-      <div class="panel-header">
-        <strong>Notificaciones</strong>
-        <button class="link" @click="marcarLeidas">Marcar leídas</button>
-      </div>
+    <Teleport to="body">
+      <div v-if="abierto" class="panel ficha" :style="posicion">
+        <div class="panel-header">
+          <strong>Notificaciones</strong>
+          <button class="link" @click="marcarLeidas">Marcar leídas</button>
+        </div>
 
-      <div class="acciones">
-        <button class="secundario" @click="revisarAhora" :disabled="revisando">
-          {{ revisando ? "Revisando..." : "Revisar ahora" }}
-        </button>
-        <button class="secundario" @click="alternarMonitoreo">
-          {{ monitoreando ? "Detener monitoreo" : "Activar monitoreo" }}
-        </button>
-      </div>
+        <div class="acciones">
+          <button class="secundario" @click="revisarAhora" :disabled="revisando">
+            {{ revisando ? "Revisando..." : "Revisar ahora" }}
+          </button>
+          <button class="secundario" @click="alternarMonitoreo">
+            {{ monitoreando ? "Detener monitoreo" : "Activar monitoreo" }}
+          </button>
+        </div>
 
-      <p v-if="!notificaciones.length" class="dato-muted">Sin notificaciones por ahora.</p>
-      <div v-for="n in notificaciones" :key="n.id" class="item" :class="{ leida: n.read }">
-        <p>{{ n.message }}</p>
-        <span class="dato-mono dato-muted">{{ new Date(n.created_at).toLocaleString() }}</span>
+        <p v-if="!notificaciones.length" class="dato-muted">Sin notificaciones por ahora.</p>
+        <div v-for="n in notificaciones" :key="n.id" class="item" :class="{ leida: n.read }">
+          <p>{{ n.message }}</p>
+          <span class="dato-mono dato-muted">{{ new Date(n.created_at).toLocaleString() }}</span>
+        </div>
       </div>
-    </div>
+    </Teleport>
   </div>
 </template>
 
@@ -111,23 +142,24 @@ onUnmounted(() => clearInterval(intervaloId));
 }
 
 .panel {
-  position: absolute;
-  left: 0;
-  top: 54px;
-  width: 320px;
-  max-height: 420px;
+  position: fixed;
+  width: 360px;
+  max-height: 440px;
   overflow-y: auto;
   background: var(--paper);
   color: var(--ink);
-  z-index: 20;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+  z-index: 50;
+  padding: 22px 20px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.3);
 }
 
 .panel-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--paper-line);
 }
 
 .link {
@@ -141,8 +173,9 @@ onUnmounted(() => clearInterval(intervaloId));
 
 .acciones {
   display: flex;
-  gap: 8px;
-  margin-bottom: 14px;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 18px;
 }
 
 .secundario {
@@ -154,9 +187,14 @@ onUnmounted(() => clearInterval(intervaloId));
 }
 
 .item {
-  padding: 10px 0;
+  padding: 14px 0;
   border-bottom: 1px solid var(--paper-line);
   font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.item p {
+  margin: 0 0 6px;
 }
 
 .item.leida {
