@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, computed } from "vue";
 import { api } from "../services/api.js";
+import AppIcon from "../components/icons/AppIcon.vue";
 
 const periodos = ref([]);
 const loading = ref(true);
@@ -22,12 +23,17 @@ const filas = computed(() => {
   const resultado = [];
   for (const periodo of periodos.value) {
     for (const m of periodo.materias) {
-      const ultimaCalif = [...m.calificaiones].reverse().find((c) => c.calificacion !== null);
+      // Los 4 parciales, en orden (1 a 4); si alguno no existe o no se ha
+      // capturado todavía, queda como null.
+      const parciales = [1, 2, 3, 4].map((n) => {
+        const c = m.calificaiones.find((x) => x.numero_calificacion === n);
+        return c ? c.calificacion : null;
+      });
       resultado.push({
         periodo: periodo.periodo.descripcion_periodo,
         materia: m.materia.nombre_materia,
         grupo: m.materia.letra_grupo,
-        calificacion: ultimaCalif ? ultimaCalif.calificacion : null,
+        parciales,
       });
     }
   }
@@ -43,21 +49,27 @@ const filtradas = computed(() => {
 });
 
 function nivel(calificacion) {
+  if (calificacion === null) return "sin-datos";
   const val = Number(calificacion);
-  if (calificacion === null || Number.isNaN(val)) return "sin-datos";
-  return val >= 70 ? "aprobada" : "reprobada";
+  return Number.isNaN(val) ? "sin-datos" : val >= 70 ? "aprobada" : "reprobada";
 }
 </script>
 
 <template>
   <div class="folio">
-    <h1>Calificaciones</h1>
+    <div class="encabezado">
+      <div class="encabezado-icono"><AppIcon name="calificaciones" /></div>
+      <h1>Calificaciones</h1>
+    </div>
 
     <p v-if="loading">Cargando...</p>
     <p v-else-if="errorMsg" class="error">{{ errorMsg }}</p>
 
     <template v-else>
-      <input v-model="search" type="text" placeholder="Buscar por materia o periodo..." class="buscador" />
+      <div class="buscador-pill">
+        <AppIcon name="buscar" />
+        <input v-model="search" type="text" placeholder="Buscar por materia o periodo..." />
+      </div>
 
       <table>
         <thead>
@@ -65,7 +77,10 @@ function nivel(calificacion) {
             <th>Materia</th>
             <th>Grupo</th>
             <th>Periodo</th>
-            <th>Calificación</th>
+            <th>P1</th>
+            <th>P2</th>
+            <th>P3</th>
+            <th>P4</th>
           </tr>
         </thead>
         <tbody>
@@ -73,10 +88,10 @@ function nivel(calificacion) {
             <td class="materia">{{ f.materia }}</td>
             <td>{{ f.grupo }}</td>
             <td>{{ f.periodo }}</td>
-            <td class="nota" :class="nivel(f.calificacion)">{{ f.calificacion ?? "—" }}</td>
+            <td v-for="(p, j) in f.parciales" :key="j" class="nota" :class="nivel(p)">{{ p ?? "—" }}</td>
           </tr>
           <tr v-if="!filtradas.length">
-            <td colspan="4">Sin resultados.</td>
+            <td colspan="7">Sin resultados.</td>
           </tr>
         </tbody>
       </table>
@@ -85,36 +100,20 @@ function nivel(calificacion) {
 </template>
 
 <style scoped>
-.buscador {
-  max-width: 320px;
-  margin-bottom: 20px;
-}
-
 .materia {
   font-family: "Source Serif 4", serif;
 }
 
 .nota {
   font-weight: 600;
+  text-align: center;
   border-left: 3px solid transparent;
   padding-left: 12px !important;
 }
 
-.nota.aprobada {
-  color: var(--pass);
-  border-left-color: var(--pass);
-}
+.nota.aprobada { color: var(--pass); border-left-color: var(--pass); }
+.nota.reprobada { color: var(--stamp); border-left-color: var(--stamp); }
+.nota.sin-datos { color: var(--ink-soft); }
 
-.nota.reprobada {
-  color: var(--stamp);
-  border-left-color: var(--stamp);
-}
-
-.nota.sin-datos {
-  color: var(--ink-soft);
-}
-
-.error {
-  color: var(--stamp);
-}
+.error { color: var(--stamp); }
 </style>
