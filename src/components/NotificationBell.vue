@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from "vue";
 import { api } from "../services/api.js";
+import AppIcon from "./icons/AppIcon.vue";
 
 const abierto = ref(false);
 const notificaciones = ref([]);
@@ -88,8 +89,9 @@ onUnmounted(() => clearInterval(intervaloId));
 <template>
   <div class="campana-wrap">
     <button ref="campanaEl" class="campana" @click="alternarPanel">
-      🔔
-      <span v-if="sinLeer() > 0" class="punto"></span>
+        <AppIcon name="campana" />
+        <span>Notificaciones</span>
+        <span v-if="sinLeer() > 0" class="punto"></span>
     </button>
 
     <Teleport to="body">
@@ -124,11 +126,23 @@ onUnmounted(() => clearInterval(intervaloId));
 }
 
 .campana {
+  width: 100%;
   background: transparent;
   border: 1px solid rgba(241, 233, 216, 0.5);
   color: var(--paper);
-  font-size: 1.2rem;
-  padding: 8px 14px;
+  font-size: 1.05rem;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border-radius: 999px;
+  position: relative;
+}
+
+.campana svg {
+  width: 18px;
+  height: 18px;
 }
 
 .punto {
