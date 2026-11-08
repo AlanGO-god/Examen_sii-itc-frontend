@@ -2,12 +2,14 @@
 import { useRouter } from "vue-router";
 import { useAuthStore } from "../store/auth.js";
 import NotificationBell from "./NotificationBell.vue";
+import { api } from "../services/api.js";
 
 const auth = useAuthStore();
 const router = useRouter();
 
-function logout() {
-  auth.logout();
+async function logout() {
+  await api.post("/logout").catch(() => {}); // si falla la petición, igual cerramos sesión localmente
+  auth.cerrarSesion();
   router.push({ name: "login" });
 }
 </script>
