@@ -1,22 +1,24 @@
 import { defineStore } from "pinia";
-
-const STORAGE_KEY = "sii_token";
+import { api } from "../services/api.js";
 
 export const useAuthStore = defineStore("auth", {
   state: () => ({
-    token: sessionStorage.getItem(STORAGE_KEY) || null,
+    autenticado: null,
   }),
-  getters: {
-    isAuthenticated: (state) => Boolean(state.token),
-  },
   actions: {
-    setToken(token) {
-      this.token = token;
-      sessionStorage.setItem(STORAGE_KEY, token);
+    // Regresa cuánto le queda a la sesión (en ms) si es válida, o null si no.
+    async verificarSesion() {
+      try {
+        const { data } = await api.get("/session");
+        this.autenticado = true;
+        return data.expiraEn;
+      } catch {
+        this.autenticado = false;
+        return null;
+      }
     },
-    logout() {
-      this.token = null;
-      sessionStorage.removeItem(STORAGE_KEY);
+    cerrarSesion() {
+      this.autenticado = false;
     },
   },
 });

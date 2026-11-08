@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from "vue-router";
 import { useAuthStore } from "../store/auth.js";
+import { programarCierreSesion } from "../services/sessionTimer.js";
 
 const routes = [
   { path: "/login", name: "login", component: () => import("../views/LoginView.vue") },
@@ -21,12 +22,18 @@ export const router = createRouter({
   routes,
 });
 
-router.beforeEach((to) => {
+router.beforeEach(async (to) => {
   const auth = useAuthStore();
-  if (to.meta.requiresAuth && !auth.isAuthenticated) {
+
+  if (auth.autenticado === null) {
+    const expiraEn = await auth.verificarSesion();
+    if (expiraEn) programarCierreSesion(expiraEn);
+  }
+
+  if (to.meta.requiresAuth && !auth.autenticado) {
     return { name: "login" };
   }
-  if (to.name === "login" && auth.isAuthenticated) {
+  if (to.name === "login" && auth.autenticado) {
     return { name: "dashboard" };
   }
   return true;
