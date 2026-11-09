@@ -37,6 +37,10 @@ async function logout() {
           <AppIcon name="horario" />
           <span>Horario</span>
         </router-link>
+        <router-link to="/mentorias" class="tab">
+          <AppIcon name="mentoria" />
+          <span>Mentorías</span>
+        </router-link>
       </nav>
 
       <div class="tabs-pie">
