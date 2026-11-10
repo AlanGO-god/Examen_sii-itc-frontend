@@ -2,6 +2,10 @@
 import { ref, computed, onMounted, watch } from "vue";
 import { api } from "../services/api.js";
 import AppIcon from "../components/icons/AppIcon.vue";
+import FormularioOfrecerTutoria from "../components/mentorias/FormularioOfrecerTutoria.vue";
+import TarjetasTutorias from "../components/mentorias/TarjetasTutorias.vue";
+import VentanaTutoria from "../components/mentorias/VentanaTutoria.vue";
+import DetalleSolicitud from "../components/mentorias/DetalleSolicitud.vue";
 
 const seccion = ref("buscar"); // buscar | ofrecerme | enviadas | recibidas | admin
 const esAdmin = ref(false);
@@ -13,6 +17,25 @@ const error = ref("");
 
 const placeholderAvatar =
   "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='8' r='4' fill='%23a2a99d'/%3E%3Cpath d='M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7' fill='%23a2a99d'/%3E%3C/svg%3E";
+
+// Aviso general (reemplaza a los alert() del navegador)
+const avisoGlobal = ref("");
+let avisoTimer = null;
+function mostrarAviso(mensaje) {
+  avisoGlobal.value = mensaje;
+  clearTimeout(avisoTimer);
+  avisoTimer = setTimeout(() => (avisoGlobal.value = ""), 5000);
+}
+
+function formatoFecha(fecha) {
+  if (!fecha) return "";
+  return new Date(`${fecha}T00:00:00`).toLocaleDateString("es-MX", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+}
 
 async function cargarTutores() {
   cargando.value = true;
@@ -94,95 +117,56 @@ async function enviarSolicitud() {
 // --- Ofrecerme como Tutor ---
 const materiasElegibles = ref([]);
 const misTutorias = ref([]);
-const cargandoElegibles = ref(false);
-const materiaElegida = ref("");
-const descripcionOfrecerme = ref("");
-const enviandoOfrecerme = ref(false);
-const avisoOfrecerme = ref("");
+const misHorarios = ref([]);
+const cargandoOfrecerme = ref(false);
 
 const materiasDisponibles = computed(() => {
-  const yaOfrecidas = new Set(misTutorias.value.map((t) => t.clave_materia));
+  const yaOfrecidas = new Set(misTutorias.value.filter((t) => !t.archivado).map((t) => t.clave_materia));
   return materiasElegibles.value.filter((m) => !yaOfrecidas.has(m.clave_materia));
 });
 
 async function cargarDatosOfrecerme() {
-  cargandoElegibles.value = true;
+  cargandoOfrecerme.value = true;
   try {
-    const [{ data: elegibles }, { data: mias }] = await Promise.all([
+    const [{ data: elegibles }, { data: mias }, { data: horarios }] = await Promise.all([
       api.get("/mentorias/materias-elegibles"),
       api.get("/mentorias/tutores/mias"),
+      api.get("/mentorias/horarios/mios"),
     ]);
     materiasElegibles.value = elegibles.materias || [];
     misTutorias.value = mias.tutores || [];
+    misHorarios.value = horarios.horarios || [];
   } catch {
     // Fallback silencioso en error
   } finally {
-    cargandoElegibles.value = false;
+    cargandoOfrecerme.value = false;
   }
 }
 
-async function ofrecerme() {
-  enviandoOfrecerme.value = true;
-  avisoOfrecerme.value = "";
-  try {
-    await api.post("/mentorias/tutores", {
-      clave_materia: materiaElegida.value,
-      descripcion: descripcionOfrecerme.value.trim() || null,
-    });
-    materiaElegida.value = "";
-    descripcionOfrecerme.value = "";
-    await cargarDatosOfrecerme();
-  } catch (e) {
-    avisoOfrecerme.value = e.response?.data?.message ?? "No se pudo completar el registro.";
-  } finally {
-    enviandoOfrecerme.value = false;
-  }
+// --- Ventana de detalle de una tutoría propia (Resumen / Fechas / Tutorados) ---
+const tutoriaAbierta = ref(null);
+
+function abrirVentanaTutoria(t) {
+  tutoriaAbierta.value = t;
+}
+function cerrarVentanaTutoria() {
+  tutoriaAbierta.value = null;
 }
 
-// --- Mis horarios (como tutor) ---
-const misHorarios = ref([]);
-const tutoriaParaHorario = ref("");
-const fechaHorario = ref("");
-const horaInicioHorario = ref("");
-const horaFinHorario = ref("");
-const avisoHorario = ref("");
-const cargandoHorarios = ref(false);
+const horariosDeLaTutoriaAbierta = computed(() =>
+  tutoriaAbierta.value ? misHorarios.value.filter((h) => h.tutor_id === tutoriaAbierta.value.id) : []
+);
+const sesionesDeLaTutoriaAbierta = computed(() =>
+  tutoriaAbierta.value ? sesionesRecibidas.value.filter((s) => s.tutor_id === tutoriaAbierta.value.id) : []
+);
 
-async function cargarMisHorarios() {
-  cargandoHorarios.value = true;
-  try {
-    const { data } = await api.get("/mentorias/horarios/mios");
-    misHorarios.value = data.horarios || [];
-  } catch {
-    misHorarios.value = [];
-  } finally {
-    cargandoHorarios.value = false;
-  }
-}
-
-async function agregarHorario() {
-  avisoHorario.value = "";
-  try {
-    await api.post(`/mentorias/tutores/${tutoriaParaHorario.value}/horarios`, {
-      fecha: fechaHorario.value,
-      hora_inicio: horaInicioHorario.value,
-      hora_fin: horaFinHorario.value,
-    });
-    fechaHorario.value = "";
-    horaInicioHorario.value = "";
-    horaFinHorario.value = "";
-    await cargarMisHorarios();
-  } catch (e) {
-    avisoHorario.value = e.response?.data?.message ?? "No se pudo agregar el horario.";
-  }
-}
-
-async function eliminarHorario(id) {
-  try {
-    await api.delete(`/mentorias/horarios/${id}`);
-    await cargarMisHorarios();
-  } catch (e) {
-    alert(e.response?.data?.message ?? "No se pudo eliminar el horario.");
+async function actualizarTrasAccionTutoria() {
+  await cargarDatosOfrecerme();
+  await cargarRecibidas();
+  // Mantiene la ventana abierta sincronizada con los datos frescos
+  if (tutoriaAbierta.value) {
+    const actualizada = misTutorias.value.find((t) => t.id === tutoriaAbierta.value.id);
+    if (actualizada) tutoriaAbierta.value = actualizada;
   }
 }
 
@@ -191,12 +175,22 @@ const sesionesEnviadas = ref([]);
 const sesionesRecibidas = ref([]);
 const cargandoEnviadas = ref(false);
 const cargandoRecibidas = ref(false);
+const solicitudAbierta = ref(null); // { sesion, rol }
+
+function abrirSolicitud(sesion, rol) {
+  solicitudAbierta.value = { sesion, rol };
+}
+function cerrarSolicitud() {
+  solicitudAbierta.value = null;
+}
 
 async function cargarEnviadas() {
   cargandoEnviadas.value = true;
   try {
     const { data } = await api.get("/mentorias/sesiones/enviadas");
     sesionesEnviadas.value = data.sesiones || [];
+  } catch {
+    mostrarAviso("No se pudieron cargar tus solicitudes.");
   } finally {
     cargandoEnviadas.value = false;
   }
@@ -207,17 +201,10 @@ async function cargarRecibidas() {
   try {
     const { data } = await api.get("/mentorias/sesiones/recibidas");
     sesionesRecibidas.value = data.sesiones || [];
+  } catch {
+    mostrarAviso("No se pudieron cargar las solicitudes recibidas.");
   } finally {
     cargandoRecibidas.value = false;
-  }
-}
-
-async function responderSesion(id, estado) {
-  try {
-    await api.patch(`/mentorias/sesiones/${id}/estado`, { estado });
-    await cargarRecibidas();
-  } catch (e) {
-    alert(e.response?.data?.message ?? "No se pudo actualizar la sesión.");
   }
 }
 
@@ -235,6 +222,8 @@ async function cargarAdminTutores() {
   try {
     const { data } = await api.get("/mentorias/admin/tutores");
     adminTutores.value = data.tutores || [];
+  } catch (e) {
+    mostrarAviso(e.response?.data?.message ?? "No se pudo cargar la lista de tutores.");
   } finally {
     cargandoAdminTutores.value = false;
   }
@@ -245,13 +234,20 @@ async function cargarAdminSesiones() {
   try {
     const { data } = await api.get("/mentorias/admin/sesiones");
     adminSesiones.value = data.sesiones || [];
+  } catch (e) {
+    mostrarAviso(e.response?.data?.message ?? "No se pudieron cargar las sesiones.");
   } finally {
     cargandoAdminSesiones.value = false;
   }
 }
 
 async function desactivarTutor(id) {
-  await api.patch(`/mentorias/admin/tutores/${id}/desactivar`);
+  if (!window.confirm("¿Desactivar a este tutor? Dejará de aparecer en las búsquedas.")) return;
+  try {
+    await api.patch(`/mentorias/admin/tutores/${id}/desactivar`);
+  } catch (e) {
+    mostrarAviso(e.response?.data?.message ?? "No se pudo desactivar al tutor.");
+  }
   await cargarAdminTutores();
 }
 
@@ -270,14 +266,13 @@ async function agregarAdmin() {
   }
 }
 
-// Carga perezosa (Lazy loading) según sub-pestaña seleccionada
+// Cada vez que se entra a una pestaña se vuelve a pedir su información, para
+// no mostrar datos viejos (por ejemplo, una solicitud que ya fue aceptada).
 watch(seccion, (nuevaSeccion) => {
-  if (nuevaSeccion === "ofrecerme") {
-    if (materiasElegibles.value.length === 0) cargarDatosOfrecerme();
-    if (misHorarios.value.length === 0) cargarMisHorarios();
-  }
-  if (nuevaSeccion === "enviadas" && sesionesEnviadas.value.length === 0) cargarEnviadas();
-  if (nuevaSeccion === "recibidas" && sesionesRecibidas.value.length === 0) cargarRecibidas();
+  if (nuevaSeccion === "buscar") cargarTutores();
+  if (nuevaSeccion === "ofrecerme") cargarDatosOfrecerme();
+  if (nuevaSeccion === "enviadas") cargarEnviadas();
+  if (nuevaSeccion === "recibidas") cargarRecibidas();
   if (nuevaSeccion === "admin" && esAdmin.value) {
     cargarAdminTutores();
     cargarAdminSesiones();
@@ -305,6 +300,8 @@ onMounted(async () => {
       </div>
       <p class="encabezado-sub">Conecta con tutores, solicita asesorías académicas o apoya a tus compañeros.</p>
     </header>
+
+    <p v-if="avisoGlobal" class="aviso-global" role="alert">{{ avisoGlobal }}</p>
 
     <!-- Navegación por Sub-Pestañas -->
     <nav class="sub-tabs">
@@ -375,8 +372,6 @@ onMounted(async () => {
             <div>
               <h3>{{ tutorSeleccionado.nombre }}</h3>
               <p class="dato-muted">{{ tutorSeleccionado.carrera }}</p>
-              <p class="dato-muted">No. Control: {{ tutorSeleccionado.numero_control }}</p>
-              <p v-if="tutorSeleccionado.email" class="dato-muted">{{ tutorSeleccionado.email }}</p>
             </div>
           </div>
 
@@ -421,99 +416,25 @@ onMounted(async () => {
 
     <!-- SECCIÓN: OFRECERME COMO TUTOR -->
     <div v-else-if="seccion === 'ofrecerme'" class="seccion-contenido">
-      <div class="panel-card">
-        <h3>Ofrecer nueva tutoría</h3>
-        <p class="subtexto">Materias aprobadas en tu expediente que califican para impartir mentoría.</p>
+      <p v-if="cargandoOfrecerme" class="dato-muted">Cargando tu información de tutor…</p>
+      <template v-else>
+        <FormularioOfrecerTutoria :materias-disponibles="materiasDisponibles" @publicado="cargarDatosOfrecerme" />
+        <TarjetasTutorias
+          :tutorias="misTutorias"
+          :horarios="misHorarios"
+          :sesiones-recibidas="sesionesRecibidas"
+          @abrir="abrirVentanaTutoria"
+        />
+      </template>
 
-        <p v-if="cargandoElegibles">Consultando materias elegibles…</p>
-        <p v-else-if="materiasDisponibles.length === 0">
-          No tienes materias disponibles pendientes por ofrecer (o tus calificaciones aún no alcanzan el promedio mínimo requerido).
-        </p>
-        <form v-else class="form-estilo" @submit.prevent="ofrecerme">
-          <label>
-            Materia a impartir
-            <select v-model="materiaElegida">
-              <option value="" disabled>Selecciona una materia elegible</option>
-              <option v-for="m in materiasDisponibles" :key="m.clave_materia" :value="m.clave_materia">
-                {{ m.nombre_materia }} (Acreditada con {{ m.calificacion }})
-              </option>
-            </select>
-          </label>
-          <label>
-            Metodología o descripción corta
-            <textarea v-model="descripcionOfrecerme" rows="3" placeholder="Ej. Ayudo con ejercicios prácticos, preparación para exámenes..." />
-          </label>
-          <p v-if="avisoOfrecerme" class="aviso-alerta">{{ avisoOfrecerme }}</p>
-          <button class="btn-primario" type="submit" :disabled="!materiaElegida || enviandoOfrecerme">
-            {{ enviandoOfrecerme ? "Guardando…" : "Publicar como Tutor" }}
-          </button>
-        </form>
-      </div>
-
-      <div class="panel-card margin-top">
-        <h3>Mis materias ofertadas</h3>
-        <p v-if="misTutorias.length === 0">Aún no te has registrado como tutor en ninguna materia.</p>
-        <div v-else class="grid-lista-simple">
-          <article v-for="t in misTutorias" :key="t.id" class="tarjeta-simple">
-            <div>
-              <strong>{{ t.nombre_materia }}</strong>
-              <span class="dato-muted"> ({{ t.clave_materia }})</span>
-            </div>
-            <span v-if="!t.activo" class="badge badge-rojo">Desactivada por admin</span>
-            <span v-else class="badge badge-verde">Activa</span>
-          </article>
-        </div>
-      </div>
-
-      <div class="panel-card margin-top">
-        <h3>Mis horarios de atención</h3>
-        <p class="subtexto">Publica fechas y horas concretas en las que puedes dar tutoría.</p>
-
-        <form class="form-estilo" @submit.prevent="agregarHorario">
-          <label>
-            Tutoría
-            <select v-model="tutoriaParaHorario">
-              <option value="" disabled>Selecciona una de tus tutorías</option>
-              <option v-for="t in misTutorias.filter((t) => t.activo)" :key="t.id" :value="t.id">
-                {{ t.nombre_materia }}
-              </option>
-            </select>
-          </label>
-          <label>
-            Fecha
-            <input v-model="fechaHorario" type="date" />
-          </label>
-          <label>
-            Hora de inicio
-            <input v-model="horaInicioHorario" type="time" />
-          </label>
-          <label>
-            Hora de fin
-            <input v-model="horaFinHorario" type="time" />
-          </label>
-          <p v-if="avisoHorario" class="aviso-alerta">{{ avisoHorario }}</p>
-          <button
-            class="btn-primario"
-            type="submit"
-            :disabled="!tutoriaParaHorario || !fechaHorario || !horaInicioHorario || !horaFinHorario"
-          >
-            Agregar horario
-          </button>
-        </form>
-
-        <p v-if="cargandoHorarios" class="dato-muted">Cargando tus horarios…</p>
-        <p v-else-if="misHorarios.length === 0" class="dato-muted">No has publicado ningún horario todavía.</p>
-        <div v-else class="grid-lista-simple">
-          <article v-for="h in misHorarios" :key="h.id" class="tarjeta-simple">
-            <div>
-              <strong>{{ h.tutores?.nombre_materia }}</strong>
-              <p class="subtexto">{{ h.fecha }} · {{ h.hora_inicio.slice(0, 5) }}–{{ h.hora_fin.slice(0, 5) }}</p>
-            </div>
-            <span v-if="h.reservado" class="badge badge-verde">Reservado</span>
-            <button v-else class="btn-sm btn-rojo" @click="eliminarHorario(h.id)">Eliminar</button>
-          </article>
-        </div>
-      </div>
+      <VentanaTutoria
+        v-if="tutoriaAbierta"
+        :tutoria="tutoriaAbierta"
+        :horarios="horariosDeLaTutoriaAbierta"
+        :sesiones="sesionesDeLaTutoriaAbierta"
+        @cerrar="cerrarVentanaTutoria"
+        @actualizar="actualizarTrasAccionTutoria"
+      />
     </div>
 
     <!-- SECCIÓN: SOLICITUDES ENVIADAS -->
@@ -521,15 +442,30 @@ onMounted(async () => {
       <p v-if="cargandoEnviadas">Cargando solicitudes…</p>
       <p v-else-if="sesionesEnviadas.length === 0">No has solicitado ninguna tutoría todavía.</p>
       <div v-else class="grid-lista-simple">
-        <article v-for="s in sesionesEnviadas" :key="s.id" class="tarjeta-simple">
+        <article
+          v-for="s in sesionesEnviadas"
+          :key="s.id"
+          class="tarjeta-simple clicable"
+          @click="abrirSolicitud(s, 'solicitante')"
+        >
           <div>
             <strong>{{ s.tutores?.nombre_materia }}</strong>
             <p class="subtexto">Tutor: {{ s.tutores?.nombre }}</p>
-            <p class="mensaje-cuerpo">"{{ s.mensaje }}"</p>
+            <p v-if="s.horarios_tutor" class="subtexto">
+              {{ formatoFecha(s.horarios_tutor.fecha) }} · {{ s.horarios_tutor.hora_inicio.slice(0, 5) }} – {{ s.horarios_tutor.hora_fin.slice(0, 5) }} hrs
+            </p>
           </div>
           <span class="badge" :class="'estado-' + s.estado">{{ s.estado }}</span>
         </article>
       </div>
+
+      <DetalleSolicitud
+        v-if="solicitudAbierta"
+        :sesion="solicitudAbierta.sesion"
+        :rol="solicitudAbierta.rol"
+        @cerrar="cerrarSolicitud"
+        @actualizado="cargarEnviadas"
+      />
     </div>
 
     <!-- SECCIÓN: SOLICITUDES RECIBIDAS -->
@@ -537,20 +473,30 @@ onMounted(async () => {
       <p v-if="cargandoRecibidas">Cargando solicitudes recibidas…</p>
       <p v-else-if="sesionesRecibidas.length === 0">No has recibido solicitudes de tutoría.</p>
       <div v-else class="grid-lista-simple">
-        <article v-for="s in sesionesRecibidas" :key="s.id" class="tarjeta-simple">
+        <article
+          v-for="s in sesionesRecibidas"
+          :key="s.id"
+          class="tarjeta-simple clicable"
+          @click="abrirSolicitud(s, 'tutor')"
+        >
           <div>
             <strong>Solicitante: {{ s.solicitante_nombre }}</strong>
-            <p class="mensaje-cuerpo">"{{ s.mensaje }}"</p>
+            <p class="subtexto">{{ s.tutores?.nombre_materia }}</p>
+            <p v-if="s.horarios_tutor" class="subtexto">
+              {{ formatoFecha(s.horarios_tutor.fecha) }} · {{ s.horarios_tutor.hora_inicio.slice(0, 5) }} – {{ s.horarios_tutor.hora_fin.slice(0, 5) }} hrs
+            </p>
           </div>
-          <div class="acciones-inline">
-            <span class="badge" :class="'estado-' + s.estado">{{ s.estado }}</span>
-            <div v-if="s.estado === 'pendiente'" class="btn-group">
-              <button class="btn-sm btn-verde" @click="responderSesion(s.id, 'aceptada')">Aceptar</button>
-              <button class="btn-sm btn-rojo" @click="responderSesion(s.id, 'rechazada')">Rechazar</button>
-            </div>
-          </div>
+          <span class="badge" :class="'estado-' + s.estado">{{ s.estado }}</span>
         </article>
       </div>
+
+      <DetalleSolicitud
+        v-if="solicitudAbierta"
+        :sesion="solicitudAbierta.sesion"
+        :rol="solicitudAbierta.rol"
+        @cerrar="cerrarSolicitud"
+        @actualizado="cargarRecibidas"
+      />
     </div>
 
     <!-- SECCIÓN: ADMINISTRACIÓN -->
@@ -563,6 +509,7 @@ onMounted(async () => {
             <div>
               <strong>{{ t.nombre_materia }}</strong> ({{ t.clave_materia }})
               <p class="subtexto">{{ t.nombre }} · {{ t.numero_control }}</p>
+              <p class="subtexto dato-mono">student_key: {{ t.student_key }}</p>
             </div>
             <div class="acciones-inline">
               <span class="badge" :class="t.activo ? 'badge-verde' : 'badge-rojo'">
@@ -578,8 +525,8 @@ onMounted(async () => {
         <h3>Agregar nuevo Administrador</h3>
         <form class="form-estilo" @submit.prevent="agregarAdmin">
           <label>
-            Student Key / No. Control
-            <input v-model="nuevoAdminKey" type="text" placeholder="Ej. 22030184" />
+            Student Key (ID de sesión)
+            <input v-model="nuevoAdminKey" type="text" placeholder="Identificador de sesión del estudiante" />
           </label>
           <label>
             Nombre (Opcional)
@@ -636,7 +583,7 @@ onMounted(async () => {
   padding: 0.5rem 1.1rem;
   border-radius: 99px;
   border: 1px solid transparent;
-  background: rgba(0, 0, 0, 0.04);
+  background: var(--paper, #fdfbf7);
   color: var(--ink, #2c3e50);
   font-size: 0.9rem;
   cursor: pointer;
@@ -715,11 +662,6 @@ onMounted(async () => {
   margin: 0;
   color: #1b382b;
 }
-.subtexto {
-  font-size: 0.82rem;
-  color: #6b7280;
-  margin: 0.15rem 0 0.35rem;
-}
 .tags-row {
   display: flex;
   gap: 0.35rem;
@@ -752,171 +694,38 @@ onMounted(async () => {
   margin-bottom: 1rem;
 }
 
-.badge {
+.modal-acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  margin-top: 1rem;
+}
+.tag-ocupado {
   font-size: 0.75rem;
-  padding: 0.2rem 0.6rem;
-  border-radius: 99px;
-  font-weight: 600;
+  color: #842029;
 }
-.badge-verde { background: #d1e7dd; color: #0f5132; }
-.badge-subtil { background: #e9ecef; color: #495057; }
-.badge-rojo { background: #f8d7da; color: #842029; }
-
-/* Botones */
-.btn-primario {
-  background: #1b382b;
-  color: #fdfbf7;
-  border: none;
-  padding: 0.6rem 1rem;
-  border-radius: 8px;
-  font-size: 0.88rem;
-  font-weight: 600;
-  cursor: pointer;
+.mensaje-reserva-block textarea {
   width: 100%;
-  transition: background 0.2s;
+  margin-top: 0.3rem;
 }
-.btn-primario:hover { background: #284e3d; }
-.btn-secundario {
-  background: transparent;
-  border: 1px solid #ccc;
-  padding: 0.55rem 1rem;
-  border-radius: 8px;
-  cursor: pointer;
+.seccion-titulo-sm {
+  font-size: 0.95rem;
+  margin: 1rem 0 0.5rem;
 }
-.btn-sm {
-  padding: 0.35rem 0.75rem;
-  border-radius: 6px;
-  border: none;
-  font-size: 0.8rem;
-  font-weight: 600;
-  cursor: pointer;
+.estado-mensaje {
+  color: #6b7280;
+  padding: 1rem 0;
 }
-.btn-verde { background: #d1e7dd; color: #0f5132; }
-.btn-rojo { background: #f8d7da; color: #842029; }
-.btn-group { display: flex; gap: 0.5rem; }
-
-/* Modales */
-.modal-fondo {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.45);
-  backdrop-filter: blur(3px);
+.estado-mensaje.error {
+  color: #842029;
+}
+.acciones-inline {
   display: flex;
   align-items: center;
-  justify-content: center;
-  z-index: 100;
+  gap: 0.6rem;
 }
-.modal-caja {
-  background: #fdfbf7;
-  padding: 1.75rem;
-  border-radius: 16px;
-  width: min(500px, 92vw);
-  max-height: 85vh;
-  overflow-y: auto;
-  position: relative;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+.dato-mono {
+  font-family: monospace;
+  font-size: 0.78rem;
 }
-.cerrar-x {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  border: none;
-  background: transparent;
-  font-size: 1.2rem;
-  cursor: pointer;
-}
-.avatar-modal {
-  width: 70px;
-  height: 70px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-.detalle-header {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-  margin-bottom: 1rem;
-}
-.materia-destacada {
-  background: #f3efe6;
-  padding: 0.75rem 1rem;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  margin-bottom: 1rem;
-}
-.lista-horarios {
-  list-style: none;
-  padding: 0;
-  display: grid;
-  gap: 0.4rem;
-  margin-bottom: 1rem;
-}
-.horario-card {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.6rem 0.85rem;
-  border: 1px solid #e2ded4;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 0.88rem;
-}
-.horario-card.seleccionado {
-  border-color: #1b382b;
-  background: rgba(27, 56, 43, 0.05);
-}
-.horario-card.ocupado {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* Form y Paneles */
-.panel-card {
-  background: #fdfbf7;
-  border: 1px solid #e5e0d8;
-  border-radius: 14px;
-  padding: 1.5rem;
-}
-.margin-top { margin-top: 1.5rem; }
-.form-estilo {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  max-width: 480px;
-  margin-top: 1rem;
-}
-.form-estilo label {
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-  font-size: 0.9rem;
-  font-weight: 600;
-}
-.form-estilo input, .form-estilo select, .form-estilo textarea, .mensaje-reserva-block textarea {
-  padding: 0.6rem;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  font-family: inherit;
-}
-.grid-lista-simple {
-  display: flex;
-  flex-direction: column;
-  gap: 0.65rem;
-  margin-top: 1rem;
-}
-.tarjeta-simple {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: #fff;
-  border: 1px solid #e5e0d8;
-  padding: 0.85rem 1rem;
-  border-radius: 10px;
-}
-
-/* Estados */
-.estado-pendiente { background: #fff3cd; color: #664d03; }
-.estado-aceptada { background: #d1e7dd; color: #0f5132; }
-.estado-rechazada { background: #f8d7da; color: #842029; }
-.aviso-alerta { font-size: 0.85rem; color: #b02a37; margin-top: 0.4rem; }
 </style>
