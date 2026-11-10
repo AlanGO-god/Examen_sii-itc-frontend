@@ -56,6 +56,12 @@ defineProps({ name: { type: String, required: true } });
       <circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="1.6" />
       <path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" d="M19 19l-4-4" />
     </template>
+    <template v-else-if="name === 'mentoria'">
+      <circle cx="8" cy="8" r="2.8" fill="none" stroke="currentColor" stroke-width="1.6" />
+      <path fill="none" stroke="currentColor" stroke-width="1.6" d="M3 20c0-3.2 2.2-5.5 5-5.5s5 2.3 5 5.5" />
+      <circle cx="17" cy="6" r="2" fill="none" stroke="currentColor" stroke-width="1.6" />
+      <path fill="none" stroke="currentColor" stroke-width="1.6" d="M13.5 19.5c.3-2.5 2-4.3 3.5-4.3s3.2 1.8 3.5 4.3" />
+    </template>
   </svg>
 </template>
 

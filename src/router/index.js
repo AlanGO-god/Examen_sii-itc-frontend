@@ -13,6 +13,7 @@ const routes = [
       { path: "calificaciones", name: "calificaciones", component: () => import("../views/CalificacionesView.vue") },
       { path: "kardex", name: "kardex", component: () => import("../views/KardexView.vue") },
       { path: "horario", name: "horario", component: () => import("../views/HorarioView.vue") },
+      { path: "mentorias", name: "mentorias", component: () => import("../views/MentoriasView.vue") },
     ],
   },
 ];
