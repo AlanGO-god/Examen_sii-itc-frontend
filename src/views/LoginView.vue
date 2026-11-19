@@ -202,7 +202,7 @@ h1 {
   border: 1.5px solid var(--paper-line);
   border-radius: 999px;
   padding: 4px 18px;
-  background: #fff8ec;
+  background: var(--card);
 }
 
 .campo-con-icono:focus-within {
