@@ -292,13 +292,13 @@ onMounted(async () => {
 
 <template>
   <section class="folio">
-    <!-- Encabezado de la Sección -->
+    <!-- Encabezado estandarizado igual que Calificaciones, Horario y Kardex -->
     <header class="encabezado">
-      <div class="encabezado-titulo">
-        <AppIcon name="mentoria" class="encabezado-icono" />
+      <div class="encabezado-icono"><AppIcon name="mentoria" /></div>
+      <div>
         <h1>Mentorías</h1>
+        <p class="dato-muted encabezado-sub">Conecta con tutores, solicita asesorías académicas o apoya a tus compañeros.</p>
       </div>
-      <p class="encabezado-sub">Conecta con tutores, solicita asesorías académicas o apoya a tus compañeros.</p>
     </header>
 
     <p v-if="avisoGlobal" class="aviso-global" role="alert">{{ avisoGlobal }}</p>
@@ -317,38 +317,40 @@ onMounted(async () => {
     <!-- SECCIÓN: BUSCAR TUTOR -->
     <div v-if="seccion === 'buscar'" class="seccion-contenido">
       <div class="buscador-pill">
-        <AppIcon name="buscar" class="buscar-icono" />
+        <AppIcon name="buscar" />
         <input v-model="busqueda" type="text" placeholder="Buscar por materia, clave o nombre del tutor..." />
       </div>
 
-      <p v-if="cargando" class="estado-mensaje">Cargando la lista de tutores…</p>
-      <p v-else-if="error" class="estado-mensaje error">{{ error }}</p>
-      <p v-else-if="tutoresFiltrados.length === 0" class="estado-mensaje">No se encontraron tutores disponibles.</p>
+      <p v-if="cargando" class="dato-muted">Cargando la lista de tutores…</p>
+      <p v-else-if="error" class="error">{{ error }}</p>
+      <p v-else-if="tutoresFiltrados.length === 0" class="dato-muted">No se encontraron tutores disponibles.</p>
 
-      <!-- Lista de Tutores (Bento Grid Style) -->
+      <!-- Lista de Tutores -->
       <div v-else class="grid-tutores">
         <article v-for="t in tutoresFiltrados" :key="t.id" class="tarjeta-tutor">
-          <div class="tutor-header">
-            <img
-              :src="t.foto ? `data:image/jpeg;base64,${t.foto}` : placeholderAvatar"
-              class="tutor-avatar"
-              alt="Foto tutor"
-            />
-            <div class="tutor-datos-principales">
-              <h3>{{ t.nombre }}</h3>
-              <p class="subtexto">{{ t.carrera || 'Estudiante ITC' }}</p>
-              <div class="tags-row">
-                <span class="badge badge-verde">Acreditó con {{ t.calificacion_acreditada }}</span>
+          <div>
+            <div class="tutor-header">
+              <img
+                :src="t.foto ? `data:image/jpeg;base64,${t.foto}` : placeholderAvatar"
+                class="tutor-avatar"
+                alt="Foto tutor"
+              />
+              <div class="tutor-datos-principales">
+                <h3>{{ t.nombre }}</h3>
+                <p class="subtexto">{{ t.carrera || 'Estudiante ITC' }}</p>
+                <div class="tags-row">
+                  <span class="badge badge-verde">Acreditó con {{ t.calificacion_acreditada }}</span>
+                </div>
               </div>
             </div>
-          </div>
 
-          <div class="tutor-materia-box">
-            <span class="materia-nombre">{{ t.nombre_materia }}</span>
-            <span class="materia-clave">{{ t.clave_materia }}</span>
-          </div>
+            <div class="tutor-materia-box">
+              <span class="materia-nombre">{{ t.nombre_materia }}</span>
+              <span class="materia-clave dato-mono">{{ t.clave_materia }}</span>
+            </div>
 
-          <p v-if="t.descripcion" class="tutor-descripcion">"{{ t.descripcion }}"</p>
+            <p v-if="t.descripcion" class="tutor-descripcion">"{{ t.descripcion }}"</p>
+          </div>
 
           <div class="tutor-footer">
             <button class="btn-primario" @click="abrirDetalle(t)">
@@ -376,11 +378,12 @@ onMounted(async () => {
           </div>
 
           <div class="materia-destacada">
-            <strong>{{ tutorSeleccionado.nombre_materia }}</strong> ({{ tutorSeleccionado.clave_materia }})
-            <p>Calificación obtenida: <strong>{{ tutorSeleccionado.calificacion_acreditada }} pts</strong></p>
+            <strong>{{ tutorSeleccionado.nombre_materia }}</strong>
+            <span class="dato-mono"> ({{ tutorSeleccionado.clave_materia }})</span>
+            <p>Calificación obtenida: <strong class="dato-mono">{{ tutorSeleccionado.calificacion_acreditada }} pts</strong></p>
           </div>
 
-          <p v-if="tutorSeleccionado.descripcion" class="detalle-descripcion">{{ tutorSeleccionado.descripcion }}</p>
+          <p v-if="tutorSeleccionado.descripcion" class="tutor-descripcion">{{ tutorSeleccionado.descripcion }}</p>
 
           <h4 class="seccion-titulo-sm">Horarios disponibles</h4>
           <p v-if="cargandoHorariosDetalle" class="dato-muted">Cargando horarios de atención…</p>
@@ -406,7 +409,7 @@ onMounted(async () => {
 
           <div class="modal-acciones">
             <button class="btn-secundario" @click="cerrarDetalle">Cancelar</button>
-            <button v-if="horarioElegido" class="btn-primario" :disabled="enviandoSolicitud" @click="enviarSolicitud">
+            <button v-if="horarioElegido" class="btn-primario btn-auto" :disabled="enviandoSolicitud" @click="enviarSolicitud">
               {{ enviandoSolicitud ? "Enviando…" : "Confirmar reserva" }}
             </button>
           </div>
@@ -439,8 +442,8 @@ onMounted(async () => {
 
     <!-- SECCIÓN: SOLICITUDES ENVIADAS -->
     <div v-else-if="seccion === 'enviadas'" class="seccion-contenido">
-      <p v-if="cargandoEnviadas">Cargando solicitudes…</p>
-      <p v-else-if="sesionesEnviadas.length === 0">No has solicitado ninguna tutoría todavía.</p>
+      <p v-if="cargandoEnviadas" class="dato-muted">Cargando solicitudes…</p>
+      <p v-else-if="sesionesEnviadas.length === 0" class="dato-muted">No has solicitado ninguna tutoría todavía.</p>
       <div v-else class="grid-lista-simple">
         <article
           v-for="s in sesionesEnviadas"
@@ -451,7 +454,7 @@ onMounted(async () => {
           <div>
             <strong>{{ s.tutores?.nombre_materia }}</strong>
             <p class="subtexto">Tutor: {{ s.tutores?.nombre }}</p>
-            <p v-if="s.horarios_tutor" class="subtexto">
+            <p v-if="s.horarios_tutor" class="subtexto dato-mono">
               {{ formatoFecha(s.horarios_tutor.fecha) }} · {{ s.horarios_tutor.hora_inicio.slice(0, 5) }} – {{ s.horarios_tutor.hora_fin.slice(0, 5) }} hrs
             </p>
           </div>
@@ -470,8 +473,8 @@ onMounted(async () => {
 
     <!-- SECCIÓN: SOLICITUDES RECIBIDAS -->
     <div v-else-if="seccion === 'recibidas'" class="seccion-contenido">
-      <p v-if="cargandoRecibidas">Cargando solicitudes recibidas…</p>
-      <p v-else-if="sesionesRecibidas.length === 0">No has recibido solicitudes de tutoría.</p>
+      <p v-if="cargandoRecibidas" class="dato-muted">Cargando solicitudes recibidas…</p>
+      <p v-else-if="sesionesRecibidas.length === 0" class="dato-muted">No has recibido solicitudes de tutoría.</p>
       <div v-else class="grid-lista-simple">
         <article
           v-for="s in sesionesRecibidas"
@@ -482,7 +485,7 @@ onMounted(async () => {
           <div>
             <strong>Solicitante: {{ s.solicitante_nombre }}</strong>
             <p class="subtexto">{{ s.tutores?.nombre_materia }}</p>
-            <p v-if="s.horarios_tutor" class="subtexto">
+            <p v-if="s.horarios_tutor" class="subtexto dato-mono">
               {{ formatoFecha(s.horarios_tutor.fecha) }} · {{ s.horarios_tutor.hora_inicio.slice(0, 5) }} – {{ s.horarios_tutor.hora_fin.slice(0, 5) }} hrs
             </p>
           </div>
@@ -503,11 +506,11 @@ onMounted(async () => {
     <div v-else-if="seccion === 'admin'" class="seccion-contenido">
       <div class="panel-card">
         <h3>Panel de Administración - Tutores</h3>
-        <p v-if="cargandoAdminTutores">Cargando tutores del sistema…</p>
+        <p v-if="cargandoAdminTutores" class="dato-muted">Cargando tutores del sistema…</p>
         <div v-else class="grid-lista-simple">
           <article v-for="t in adminTutores" :key="t.id" class="tarjeta-simple">
             <div>
-              <strong>{{ t.nombre_materia }}</strong> ({{ t.clave_materia }})
+              <strong>{{ t.nombre_materia }}</strong> <span class="dato-mono">({{ t.clave_materia }})</span>
               <p class="subtexto">{{ t.nombre }} · {{ t.numero_control }}</p>
               <p class="subtexto dato-mono">student_key: {{ t.student_key }}</p>
             </div>
@@ -541,33 +544,8 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-/* Contenedor Principal */
-.folio {
-  max-width: 1080px;
-  margin: 0 auto;
-  padding: 1.5rem;
-  font-family: inherit;
-}
-
-/* Encabezado */
-.encabezado {
-  margin-bottom: 1.5rem;
-}
-.encabezado-titulo {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-.encabezado-titulo h1 {
-  font-size: 1.8rem;
-  font-weight: 700;
-  color: var(--ink, #1f2937);
-  margin: 0;
-}
 .encabezado-sub {
-  color: #6b7280;
-  font-size: 0.95rem;
-  margin-top: 0.25rem;
+  margin: 4px 0 0;
 }
 
 /* Navegación por Pestañas */
@@ -576,156 +554,146 @@ onMounted(async () => {
   gap: 0.5rem;
   flex-wrap: wrap;
   margin-bottom: 1.5rem;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--paper-line);
+  padding-bottom: 0.85rem;
 }
+
 .sub-tabs button {
   padding: 0.5rem 1.1rem;
-  border-radius: 99px;
-  border: 1px solid transparent;
-  background: var(--paper, #fdfbf7);
-  color: var(--ink, #2c3e50);
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
+  border-radius: 999px;
+  border: 1px solid var(--paper-line);
+  background: var(--card);
+  color: var(--ink);
+  font-size: 0.92rem;
+  display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.45rem;
 }
-.sub-tabs button:hover {
-  background: rgba(0, 0, 0, 0.08);
+
+.sub-tabs button:hover:not(:disabled) {
+  background: var(--card-subtle);
+  border-color: var(--cover);
 }
+
 .sub-tabs button.activo {
-  background: #1b382b;
-  color: #fdfbf7;
+  background: var(--cover);
+  border-color: var(--cover);
+  color: var(--paper);
   font-weight: 600;
-  box-shadow: 0 2px 6px rgba(27, 56, 43, 0.2);
 }
 
-/* Buscador */
-.buscador-pill {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  background: #fdfbf7;
-  border: 1px solid #e2ded4;
-  padding: 0.65rem 1.25rem;
-  border-radius: 12px;
-  margin-bottom: 1.5rem;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.03);
-}
-.buscador-pill input {
-  border: none;
-  background: transparent;
-  width: 100%;
-  font-size: 0.95rem;
-  outline: none;
+.tab-icon {
+  width: 16px;
+  height: 16px;
 }
 
-/* Grid Bento de Tutores */
+/* Grid de Tutores */
 .grid-tutores {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 1.25rem;
 }
+
 .tarjeta-tutor {
-  background: #fdfbf7;
-  border: 1px solid #e5e0d8;
-  border-radius: 14px;
-  padding: 1.25rem;
+  background: var(--card);
+  border: 1px solid var(--paper-line);
+  border-radius: 16px;
+  padding: 1.35rem;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-.tarjeta-tutor:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0,0,0,0.06);
+  transition: transform 0.2s ease, border-color 0.2s ease;
 }
 
-/* Header del Tutor */
+.tarjeta-tutor:hover {
+  transform: translateY(-2px);
+  border-color: var(--cover);
+}
+
 .tutor-header {
   display: flex;
   gap: 0.85rem;
   align-items: center;
 }
+
 .tutor-avatar {
   width: 54px;
   height: 54px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid #1b382b;
+  border: 2px solid var(--paper-line);
+  flex-shrink: 0;
 }
+
 .tutor-datos-principales h3 {
-  font-size: 1.05rem;
+  font-size: 1.08rem;
   margin: 0;
-  color: #1b382b;
+  color: var(--ink);
 }
+
 .tags-row {
   display: flex;
   gap: 0.35rem;
   flex-wrap: wrap;
 }
 
-/* Cajas e Insignias */
 .tutor-materia-box {
-  background: rgba(27, 56, 43, 0.05);
-  border-radius: 8px;
-  padding: 0.6rem 0.85rem;
-  margin: 0.85rem 0;
+  background: var(--card-subtle);
+  border: 1px solid var(--paper-line);
+  border-radius: 10px;
+  padding: 0.65rem 0.85rem;
+  margin: 0.9rem 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 0.5rem;
 }
+
 .materia-nombre {
   font-weight: 600;
-  font-size: 0.9rem;
-  color: #1b382b;
+  font-size: 0.92rem;
+  color: var(--cover);
 }
+
 .materia-clave {
   font-size: 0.8rem;
-  color: #666;
+  color: var(--ink-soft);
 }
+
 .tutor-descripcion {
-  font-size: 0.85rem;
-  color: #4b5563;
+  font-size: 0.88rem;
+  color: var(--ink-soft);
   font-style: italic;
-  margin-bottom: 1rem;
+  margin: 0 0 1rem;
 }
 
 .modal-acciones {
   display: flex;
   justify-content: flex-end;
-  gap: 0.6rem;
-  margin-top: 1rem;
+  gap: 0.65rem;
+  margin-top: 1.1rem;
 }
-.tag-ocupado {
-  font-size: 0.75rem;
-  color: #842029;
+
+.btn-auto {
+  width: auto;
 }
+
 .mensaje-reserva-block textarea {
-  width: 100%;
-  margin-top: 0.3rem;
+  margin-top: 0.35rem;
 }
+
 .seccion-titulo-sm {
-  font-size: 0.95rem;
+  font-size: 0.98rem;
   margin: 1rem 0 0.5rem;
 }
-.estado-mensaje {
-  color: #6b7280;
-  padding: 1rem 0;
+
+.error {
+  color: var(--stamp);
 }
-.estado-mensaje.error {
-  color: #842029;
-}
+
 .acciones-inline {
   display: flex;
   align-items: center;
   gap: 0.6rem;
-}
-.dato-mono {
-  font-family: monospace;
-  font-size: 0.78rem;
 }
 </style>

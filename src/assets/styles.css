@@ -3,11 +3,17 @@
   --cover-dark: #16281f;
   --paper: #f1e9d8;
   --paper-line: #d8cbb0;
+  --card: #fff8ec;
+  --card-subtle: #f7f1e3;
   --ink: #221f1a;
   --ink-soft: #5a5347;
   --stamp: #7a1f3d;
+  --stamp-bg: rgba(122, 31, 61, 0.12);
   --gold: #a9802e;
+  --gold-bg: rgba(169, 128, 46, 0.15);
   --pass: #3f6a4e;
+  --pass-bg: rgba(63, 106, 78, 0.14);
+  --neutral-bg: rgba(90, 83, 71, 0.12);
 }
 
 * {
@@ -23,14 +29,16 @@ body {
   line-height: 1.55;
 }
 
-h1, h2, h3 {
+h1, h2, h3, h4 {
   font-weight: 600;
   margin: 0 0 14px;
+  color: var(--ink);
 }
 
 h1 { font-size: 2.4rem; }
 h2 { font-size: 1.7rem; }
 h3 { font-size: 1.3rem; }
+h4 { font-size: 1.05rem; }
 
 a {
   color: inherit;
@@ -40,6 +48,12 @@ a {
   max-width: 980px;
   margin: 0 auto;
   padding: 44px 40px;
+}
+
+@media (max-width: 720px) {
+  .folio {
+    padding: 28px 20px;
+  }
 }
 
 .ficha {
@@ -58,6 +72,17 @@ a {
   font-size: 0.9rem;
 }
 
+.subtexto {
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  margin: 0.15rem 0 0.35rem;
+}
+
+.margin-top {
+  margin-top: 1.5rem;
+}
+
+/* Tablas */
 table {
   width: 100%;
   border-collapse: collapse;
@@ -79,6 +104,7 @@ td {
   border-bottom: 1px solid var(--paper-line);
 }
 
+/* Inputs base */
 input[type="text"],
 input[type="email"],
 input[type="password"] {
@@ -92,23 +118,33 @@ input[type="password"] {
   width: 100%;
 }
 
-input:focus {
+input:focus,
+select:focus,
+textarea:focus {
   outline: 2px solid var(--gold);
   outline-offset: 2px;
 }
 
+/* Botones base */
 button {
   font-family: "Source Serif 4", serif;
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   cursor: pointer;
   border: 1px solid var(--ink);
   background: var(--ink);
   color: var(--paper);
-  padding: 13px 24px;
+  padding: 12px 22px;
+  transition: background 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
 }
 
-button:hover {
+button:hover:not(:disabled) {
   background: var(--cover);
+  border-color: var(--cover);
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 button:focus-visible,
@@ -123,6 +159,7 @@ a:focus-visible {
   }
 }
 
+/* Encabezados de sección */
 .encabezado {
   display: flex;
   align-items: center;
@@ -134,7 +171,7 @@ a:focus-visible {
   width: 44px;
   height: 44px;
   border-radius: 12px;
-  background: rgba(169, 128, 46, 0.15);
+  background: var(--gold-bg);
   color: var(--gold);
   display: flex;
   align-items: center;
@@ -151,6 +188,7 @@ a:focus-visible {
   margin: 0;
 }
 
+/* Buscador en forma de píldora */
 .buscador-pill {
   display: flex;
   align-items: center;
@@ -158,9 +196,13 @@ a:focus-visible {
   border: 1.5px solid var(--paper-line);
   border-radius: 999px;
   padding: 10px 18px;
-  background: #fff8ec;
-  max-width: 340px;
-  margin-bottom: 20px;
+  background: var(--card);
+  max-width: 420px;
+  margin-bottom: 22px;
+}
+
+.buscador-pill:focus-within {
+  border-color: var(--gold);
 }
 
 .buscador-pill svg {
@@ -172,152 +214,257 @@ a:focus-visible {
 
 .buscador-pill input {
   border: none;
-  padding: 4px 0;
+  padding: 2px 0;
   background: transparent;
+  font-size: 1rem;
 }
 
 .buscador-pill input:focus {
   outline: none;
 }
-/* =========================================================
-   Mentorías — clases compartidas entre MentoriasView y sus
-   componentes hijos (globales a propósito: un componente hijo
-   no hereda <style scoped> del padre).
-   ========================================================= */
-.dato-muted { color: #6b7280; }
-.subtexto { font-size: 0.82rem; color: #6b7280; margin: 0.15rem 0 0.35rem; }
 
+/* =========================================================
+   Componentes compartidos (Tarjetas, Formularios, Modales)
+   ========================================================= */
 .panel-card {
-  background: #fdfbf7;
-  border: 1px solid #e5e0d8;
-  border-radius: 14px;
-  padding: 1.5rem;
+  background: var(--card);
+  border: 1px solid var(--paper-line);
+  border-radius: 16px;
+  padding: 24px;
 }
-.margin-top { margin-top: 1.5rem; }
 
 .form-estilo {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  max-width: 480px;
+  max-width: 520px;
   margin-top: 1rem;
 }
+
 .form-estilo label {
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
-  font-size: 0.9rem;
+  gap: 0.35rem;
+  font-size: 0.92rem;
   font-weight: 600;
+  color: var(--ink);
 }
+
 .form-estilo input,
 .form-estilo select,
 .form-estilo textarea,
-.mensaje-reserva-block textarea {
-  padding: 0.6rem;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  font-family: inherit;
+.mensaje-reserva-block textarea,
+.modal-caja input[type="text"] {
+  padding: 0.65rem 0.85rem;
+  border-radius: 10px;
+  border: 1.5px solid var(--paper-line);
+  background: var(--card);
+  color: var(--ink);
+  font-family: "Source Serif 4", serif;
+  font-size: 0.98rem;
+  width: 100%;
 }
 
+/* Botones semánticos estandarizados */
 .btn-primario {
-  background: #1b382b;
-  color: #fdfbf7;
-  border: none;
-  padding: 0.6rem 1rem;
-  border-radius: 8px;
-  font-size: 0.88rem;
+  background: var(--cover);
+  color: var(--paper);
+  border: 1px solid var(--cover);
+  padding: 0.65rem 1.25rem;
+  border-radius: 999px;
+  font-size: 0.92rem;
   font-weight: 600;
-  cursor: pointer;
   width: 100%;
-  transition: background 0.2s;
 }
-.btn-primario:hover { background: #284e3d; }
-.btn-primario:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.btn-primario:hover:not(:disabled) {
+  background: var(--cover-dark);
+  border-color: var(--cover-dark);
+}
+
 .btn-secundario {
   background: transparent;
-  border: 1px solid #ccc;
-  padding: 0.55rem 1rem;
-  border-radius: 8px;
-  cursor: pointer;
+  color: var(--ink);
+  border: 1px solid var(--ink);
+  padding: 0.55rem 1.15rem;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
-.btn-sm {
-  padding: 0.35rem 0.75rem;
-  border-radius: 6px;
-  border: none;
-  font-size: 0.8rem;
-  font-weight: 600;
-  cursor: pointer;
-}
-.btn-verde { background: #d1e7dd; color: #0f5132; }
-.btn-rojo { background: #f8d7da; color: #842029; }
-.btn-gris { background: #e9ecef; color: #495057; }
-.btn-group { display: flex; gap: 0.5rem; flex-wrap: wrap; }
 
+.btn-secundario:hover:not(:disabled) {
+  background: rgba(34, 31, 26, 0.07);
+  border-color: var(--ink);
+}
+
+.btn-sm {
+  padding: 0.38rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.btn-verde {
+  background: var(--pass-bg);
+  color: var(--pass);
+  border-color: rgba(63, 106, 78, 0.35);
+}
+.btn-verde:hover:not(:disabled) {
+  background: var(--pass);
+  color: var(--paper);
+}
+
+.btn-rojo {
+  background: var(--stamp-bg);
+  color: var(--stamp);
+  border-color: rgba(122, 31, 61, 0.35);
+}
+.btn-rojo:hover:not(:disabled) {
+  background: var(--stamp);
+  color: var(--paper);
+}
+
+.btn-gris {
+  background: var(--neutral-bg);
+  color: var(--ink-soft);
+  border-color: var(--paper-line);
+}
+.btn-gris:hover:not(:disabled) {
+  background: var(--ink-soft);
+  color: var(--paper);
+}
+
+.btn-group {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* Badges y estados */
 .badge {
+  font-family: "IBM Plex Mono", monospace;
   font-size: 0.75rem;
-  padding: 0.2rem 0.6rem;
-  border-radius: 99px;
+  padding: 0.22rem 0.65rem;
+  border-radius: 999px;
   font-weight: 600;
   display: inline-block;
+  border: 1px solid transparent;
 }
-.badge-verde { background: #d1e7dd; color: #0f5132; }
-.badge-subtil { background: #e9ecef; color: #495057; }
-.badge-rojo { background: #f8d7da; color: #842029; }
-.badge-ambar { background: #fff3cd; color: #664d03; }
 
-.estado-pendiente { background: #fff3cd; color: #664d03; }
-.estado-aceptada { background: #d1e7dd; color: #0f5132; }
-.estado-rechazada { background: #f8d7da; color: #842029; }
-.estado-cancelada { background: #e9ecef; color: #495057; }
-.estado-completada { background: #cfe2ff; color: #084298; }
+.badge-verde,
+.estado-aceptada {
+  background: var(--pass-bg);
+  color: var(--pass);
+  border-color: rgba(63, 106, 78, 0.25);
+}
 
+.badge-subtil,
+.estado-cancelada {
+  background: var(--neutral-bg);
+  color: var(--ink-soft);
+  border-color: var(--paper-line);
+}
+
+.badge-rojo,
+.estado-rechazada {
+  background: var(--stamp-bg);
+  color: var(--stamp);
+  border-color: rgba(122, 31, 61, 0.25);
+}
+
+.badge-ambar,
+.estado-pendiente {
+  background: var(--gold-bg);
+  color: #7c5b18;
+  border-color: rgba(169, 128, 46, 0.3);
+}
+
+.estado-completada {
+  background: rgba(31, 58, 52, 0.14);
+  color: var(--cover);
+  border-color: rgba(31, 58, 52, 0.25);
+}
+
+/* Listas y tarjetas simples */
 .grid-lista-simple {
   display: flex;
   flex-direction: column;
-  gap: 0.65rem;
+  gap: 0.75rem;
   margin-top: 1rem;
 }
+
 .tarjeta-simple {
   display: flex;
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  gap: 0.5rem;
-  background: #fff;
-  border: 1px solid #e5e0d8;
-  padding: 0.85rem 1rem;
-  border-radius: 10px;
+  gap: 0.6rem;
+  background: var(--card);
+  border: 1px solid var(--paper-line);
+  padding: 0.95rem 1.15rem;
+  border-radius: 12px;
   cursor: default;
+  transition: border-color 0.2s ease, transform 0.15s ease;
 }
-.tarjeta-simple.clicable { cursor: pointer; }
-.tarjeta-simple.clicable:hover { border-color: #1b382b; }
 
+.tarjeta-simple.clicable {
+  cursor: pointer;
+}
+
+.tarjeta-simple.clicable:hover {
+  border-color: var(--cover);
+  transform: translateY(-1px);
+}
+
+/* Horarios */
 .lista-horarios {
   list-style: none;
   padding: 0;
   display: grid;
-  gap: 0.4rem;
+  gap: 0.5rem;
   margin: 0 0 1rem;
 }
+
 .horario-card {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.6rem 0.85rem;
-  border: 1px solid #e2ded4;
-  border-radius: 8px;
+  padding: 0.65rem 0.9rem;
+  border: 1px solid var(--paper-line);
+  border-radius: 10px;
   cursor: pointer;
-  font-size: 0.88rem;
-  background: #fff;
+  font-size: 0.9rem;
+  font-family: "IBM Plex Mono", monospace;
+  background: var(--card);
+  transition: border-color 0.2s ease, background 0.2s ease;
 }
-.horario-card.seleccionado { border-color: #1b382b; background: rgba(27, 56, 43, 0.05); }
-.horario-card.ocupado { opacity: 0.5; cursor: not-allowed; }
-.tag-ocupado { font-size: 0.75rem; color: #842029; }
 
+.horario-card.seleccionado {
+  border-color: var(--cover);
+  background: var(--pass-bg);
+}
+
+.horario-card.ocupado {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.tag-ocupado {
+  font-size: 0.75rem;
+  color: var(--stamp);
+  font-weight: 600;
+}
+
+/* Modales */
 .modal-fondo {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.45);
+  background: rgba(22, 40, 31, 0.55);
   backdrop-filter: blur(3px);
   display: flex;
   align-items: center;
@@ -325,66 +472,116 @@ a:focus-visible {
   z-index: 100;
   padding: 1rem;
 }
+
 .modal-caja {
-  background: #fdfbf7;
-  padding: 1.75rem;
-  border-radius: 16px;
+  background: var(--paper);
+  color: var(--ink);
+  border: 1px solid var(--paper-line);
+  padding: 2rem;
+  border-radius: 18px;
   width: min(560px, 92vw);
   max-height: 85vh;
   overflow-y: auto;
   position: relative;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.28);
 }
+
 .cerrar-x {
   position: absolute;
   top: 1rem;
   right: 1rem;
   border: none;
   background: transparent;
+  color: var(--ink-soft);
+  padding: 0.35rem 0.55rem;
   font-size: 1.2rem;
-  cursor: pointer;
+  border-radius: 50%;
 }
-.avatar-modal { width: 70px; height: 70px; border-radius: 50%; object-fit: cover; }
-.detalle-header { display: flex; gap: 1rem; align-items: center; margin-bottom: 1rem; }
-.materia-destacada {
-  background: #f3efe6;
-  padding: 0.75rem 1rem;
-  border-radius: 8px;
-  font-size: 0.9rem;
+
+.cerrar-x:hover:not(:disabled) {
+  background: rgba(34, 31, 26, 0.08);
+  color: var(--ink);
+}
+
+.avatar-modal {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--paper-line);
+}
+
+.detalle-header {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
   margin-bottom: 1rem;
 }
 
-.aviso-global {
-  background: #f8d7da;
-  color: #842029;
-  border: 1px solid #f1aeb5;
-  border-radius: 10px;
-  padding: 0.6rem 1rem;
-  margin: 0 0 1rem;
-  font-size: 0.9rem;
+.materia-destacada {
+  background: var(--card);
+  border: 1px solid var(--paper-line);
+  padding: 0.85rem 1.1rem;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  margin-bottom: 1rem;
 }
-.aviso-alerta { font-size: 0.85rem; color: #b02a37; margin-top: 0.4rem; }
-.aviso-info { font-size: 0.85rem; color: #0f5132; margin-top: 0.4rem; }
+
+.materia-destacada p {
+  margin: 0.25rem 0 0;
+}
+
+/* Avisos y alertas */
+.aviso-global {
+  background: var(--stamp-bg);
+  color: var(--stamp);
+  border: 1px solid rgba(122, 31, 61, 0.3);
+  border-radius: 12px;
+  padding: 0.75rem 1.1rem;
+  margin: 0 0 1.25rem;
+  font-size: 0.92rem;
+}
+
+.aviso-alerta {
+  font-size: 0.88rem;
+  color: var(--stamp);
+  margin-top: 0.45rem;
+}
+
+.aviso-info {
+  font-size: 0.88rem;
+  color: var(--pass);
+  margin-top: 0.45rem;
+}
 
 /* Pestañas internas de la ventana de una tutoría */
 .ventana-tabs {
   display: flex;
-  gap: 0.4rem;
-  border-bottom: 1px solid #e2ded4;
-  margin-bottom: 1rem;
-  padding-bottom: 0.5rem;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--paper-line);
+  margin-bottom: 1.15rem;
+  padding-bottom: 0.65rem;
 }
+
 .ventana-tabs button {
-  padding: 0.4rem 0.9rem;
-  border-radius: 99px;
-  border: 1px solid transparent;
-  background: rgba(0, 0, 0, 0.04);
-  font-size: 0.85rem;
-  cursor: pointer;
+  padding: 0.45rem 1rem;
+  border-radius: 999px;
+  border: 1px solid var(--paper-line);
+  background: var(--card);
+  color: var(--ink);
+  font-size: 0.88rem;
 }
+
+.ventana-tabs button:hover:not(:disabled) {
+  background: var(--card-subtle);
+  border-color: var(--cover);
+}
+
 .ventana-tabs button.activo {
-  background: #1b382b;
-  color: #fdfbf7;
+  background: var(--cover);
+  border-color: var(--cover);
+  color: var(--paper);
   font-weight: 600;
 }
 
@@ -392,47 +589,61 @@ a:focus-visible {
   display: flex;
   gap: 0.75rem;
   flex-wrap: wrap;
-  margin: 0.4rem 0 0.6rem;
+  margin: 0.35rem 0 0;
+  font-family: "IBM Plex Mono", monospace;
   font-size: 0.78rem;
-  color: #6b7280;
+  color: var(--ink-soft);
 }
 
 .borrador-horarios {
-  border: 1px solid #e2ded4;
-  border-radius: 10px;
-  padding: 0.85rem;
+  border: 1px solid var(--paper-line);
+  background: var(--card-subtle);
+  border-radius: 12px;
+  padding: 1rem;
 }
+
 .borrador-horarios legend {
-  font-size: 0.85rem;
+  font-size: 0.88rem;
   font-weight: 600;
-  padding: 0 0.3rem;
+  padding: 0 0.4rem;
+  color: var(--ink);
 }
+
 .fila-horario-nueva {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: 0.55rem;
   align-items: center;
-  margin-bottom: 0.6rem;
+  margin-bottom: 0.75rem;
 }
+
 .fila-horario-nueva input[type="date"],
-.fila-horario-nueva input[type="time"] {
-  padding: 0.4rem;
-  border-radius: 6px;
-  border: 1px solid #ccc;
+.fila-horario-nueva input[type="time"],
+.fila-horario-nueva input[type="number"] {
+  padding: 0.45rem 0.6rem;
+  border-radius: 8px;
+  border: 1.5px solid var(--paper-line);
+  background: var(--card);
+  color: var(--ink);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.85rem;
+  width: auto;
 }
+
 .repetir {
   display: flex;
+  flex-direction: row !important;
   align-items: center;
-  gap: 0.3rem;
-  font-size: 0.8rem;
-  font-weight: normal;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  font-weight: normal !important;
 }
 
 .contacto-caja {
-  background: #e8f3ec;
-  border: 1px solid #bfe0cc;
-  border-radius: 8px;
-  padding: 0.7rem 0.9rem;
-  font-size: 0.88rem;
-  margin: 0.6rem 0;
+  background: var(--pass-bg);
+  border: 1px solid rgba(63, 106, 78, 0.3);
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  font-size: 0.9rem;
+  margin: 0.75rem 0;
 }

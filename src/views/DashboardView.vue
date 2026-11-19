@@ -198,7 +198,7 @@ const porcentajeReprobadas = computed(() => {
   display: flex;
   align-items: center;
   gap: 14px;
-  background: #fff8ec;
+  background: var(--card);
   border: 1px solid var(--paper-line);
   border-radius: 16px;
   padding: 16px 18px;
